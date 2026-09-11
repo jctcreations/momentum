@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d9488">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Momentum">
+<title>Momentum</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230d9488'/><path d='M22 62 L40 44 L52 56 L78 30' fill='none' stroke='white' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<style>
+  :root{
+    --teal:#0d9488; --teal-d:#0f766e; --teal-l:#5eead4;
+    --coral:#fb7185; --amber:#f59e0b;
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --bg:#f1f5f9; --card:#ffffff; --good:#16a34a;
+    --shadow:0 6px 20px rgba(15,23,42,.08);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+    padding-bottom:calc(76px + var(--safe-b));
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px}
+  h1,h2,h3{margin:0}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  .hidden{display:none!important}
+
+  header{background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#fff;padding:calc(env(safe-area-inset-top,0px) + 20px) 0 22px}
+  header .wrap{display:flex;align-items:center;justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:-.5px}
+  .logo .mark{width:34px;height:34px;background:rgba(255,255,255,.18);border-radius:10px;display:grid;place-items:center}
+  .greet{font-size:13px;opacity:.9;margin-top:2px}
+
+  .card{background:var(--card);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin:14px 0}
+  .card h2{font-size:18px;margin-bottom:4px}
+  .pill{display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+  .pill.rest{background:#e0f2fe;color:#0369a1}
+  .pill.go{background:#dcfce7;color:#15803d}
+  .pill.new{background:#fef3c7;color:#b45309;font-size:10px;padding:2px 7px;margin-left:6px;vertical-align:middle}
+  .muted{color:var(--muted);font-size:14px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:14px;font-weight:800;font-size:17px;background:var(--teal);color:#fff;transition:transform .08s,filter .15s}
+  .btn:active{transform:scale(.98)}
+  .btn.secondary{background:#e2e8f0;color:var(--ink)}
+  .btn.coral{background:var(--coral)}
+  .btn.ghost{background:transparent;border:2px solid var(--line);color:var(--ink);font-weight:700}
+  .btn.sm{padding:10px 14px;font-size:14px;width:auto}
+
+  .movepv{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .movepv:last-child{border-bottom:none}
+  .movepv .ic{width:44px;height:44px;flex:none;background:#f0fdfa;border-radius:12px;display:grid;place-items:center}
+  .movepv .ic svg{width:30px;height:30px}
+  .movepv .nm{font-weight:700;font-size:15px}
+  .movepv .dt{font-size:13px;color:var(--muted)}
+
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .stat{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+  .stat .lab{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .stat .val{font-size:26px;font-weight:800;margin-top:2px}
+  .stat .val small{font-size:14px;font-weight:600;color:var(--muted)}
+
+  .bar{height:12px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:10px 0 6px}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--teal-l),var(--teal));border-radius:999px;transition:width .5s}
+
+  .field{margin:12px 0}
+  .field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px}
+  .field input,.field select{width:100%;padding:14px;border:2px solid var(--line);border-radius:12px;font-size:16px;background:#fff;color:var(--ink)}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--teal)}
+  .inline{display:flex;gap:10px}
+  .inline .field{flex:1;margin:0}
+
+  .habit{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .habit:last-child{border-bottom:none}
+  .habit .tx{flex:1}
+  .habit .tx b{font-weight:700}
+  .switch{width:52px;height:30px;border-radius:999px;background:#cbd5e1;position:relative;transition:background .2s;flex:none}
+  .switch.on{background:var(--teal)}
+  .switch i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch.on i{left:25px}
+  .check{width:30px;height:30px;border-radius:9px;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-weight:900;color:#fff}
+  .check.on{background:var(--good);border-color:var(--good)}
+  .water-dots{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .wd{width:26px;height:32px;border:2px solid var(--teal-l);border-radius:6px 6px 8px 8px;position:relative;overflow:hidden;background:#fff}
+  .wd.on{background:var(--teal-l)}
+
+  .badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .badge{text-align:center;opacity:.35;filter:grayscale(1)}
+  .badge.earned{opacity:1;filter:none}
+  .badge .em{font-size:30px}
+  .badge .bl{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.2}
+
+  .photogrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+  .photogrid .ph{position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:#e2e8f0}
+  .photogrid .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .photogrid .ph .d{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 4px;text-align:center}
+  .photogrid .ph .x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:14px;display:grid;place-items:center}
+
+  nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);z-index:40;padding-bottom:var(--safe-b)}
+  nav .inner{max-width:520px;margin:0 auto;display:flex}
+  nav button{flex:1;padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:11px;font-weight:700}
+  nav button svg{width:24px;height:24px}
+  nav button.active{color:var(--teal)}
+
+  #player{position:fixed;inset:0;background:var(--card);z-index:100;display:flex;flex-direction:column}
+  #player.hidden{display:none!important}
+  .pl-top{padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 8px}
+  .pl-progress{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden}
+  .pl-progress > i{display:block;height:100%;background:var(--teal);transition:width .3s}
+  .pl-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 24px;overflow:auto}
+  .pl-illus{width:180px;height:180px;background:#f0fdfa;border-radius:28px;display:grid;place-items:center;margin-bottom:14px}
+  .pl-illus svg{width:130px;height:130px}
+  .pl-name{font-size:26px;font-weight:800;letter-spacing:-.5px}
+  .pl-target{font-size:60px;font-weight:900;color:var(--teal);line-height:1.1;margin:6px 0}
+  .pl-target.timer{font-variant-numeric:tabular-nums}
+  .pl-how{color:var(--muted);font-size:15px;max-width:340px;margin:6px auto 0}
+  .pl-adj{display:flex;gap:10px;margin-top:16px}
+  .pl-foot{padding:14px 16px calc(16px + var(--safe-b))}
+  .pl-rest .pl-illus{background:#eff6ff}
+  .pl-count{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+  .pl-next{margin-top:8px;font-size:14px;color:var(--muted)}
+  .pl-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;font-size:26px;color:var(--muted);width:40px;height:40px}
+  .finish{text-align:center;padding:30px 20px}
+  .finish .big{font-size:56px}
+  .finish h2{font-size:26px;margin:8px 0}
+  .toast{position:fixed;bottom:calc(90px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;font-size:14px;z-index:200;box-shadow:var(--shadow);opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+  .tips{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:12px;font-size:13px;margin-top:10px}
+  a{color:var(--teal)}
+  .sectitle{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:22px 4px 2px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <div class="logo"><span class="mark">
+        <svg viewBox="0 0 100 100" width="22" height="22"><path d="M20 64 L40 44 L52 56 L80 28" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>Momentum</div>
+      <div class="greet" id="greet">Let's get moving</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:12px;opacity:.85">LEVEL</div>
+      <div style="font-size:26px;font-weight:900" id="hdrLevel">1</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- TODAY -->
+  <section id="tab-today">
+    <div class="card" id="todayCard"></div>
+    <div class="card">
+      <div class="row"><h2>Quick log</h2><span class="muted" id="todayDate"></span></div>
+      <div class="stats" style="margin-top:12px">
+        <div class="stat"><div class="lab">Weight</div><div class="val" id="qWeight">—</div></div>
+        <div class="stat"><div class="lab">Waist</div><div class="val" id="qWaist">—</div></div>
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label>Steps today (type from your phone's health app)</label>
+        <div class="inline">
+          <input type="number" inputmode="numeric" id="stepInput" placeholder="e.g. 6000">
+          <button class="btn sm" style="padding:0 18px" onclick="saveSteps()">Save</button>
+        </div>
+        <div class="muted" id="stepStatus" style="margin-top:8px"></div>
+        <div class="bar"><i id="stepBar"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section id="tab-progress" class="hidden">
+    <div class="card">
+      <div class="row"><h2>Your level</h2><span class="pill go" id="lvlPill">Level 1</span></div>
+      <div class="bar"><i id="lvlBar"></i></div>
+      <div class="muted" id="lvlText"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="lab">Workouts done</div><div class="val" id="stTotal">0</div></div>
+      <div class="stat"><div class="lab">This week</div><div class="val" id="stWeek">0 <small>/ 5</small></div></div>
+      <div class="stat"><div class="lab">Effort this week</div><div class="val" id="stEffort">0 <small>pts</small></div></div>
+      <div class="stat"><div class="lab">Day streak</div><div class="val" id="stStreak">0</div></div>
+    </div>
+
+    <div class="sectitle">Log your numbers</div>
+    <div class="card">
+      <div class="inline">
+        <div class="field"><label>Weight (lbs)</label><input type="number" inputmode="decimal" id="inWeight" placeholder="—"></div>
+        <div class="field"><label>Waist (in)</label><input type="number" inputmode="decimal" id="inWaist" placeholder="—"></div>
+      </div>
+      <button class="btn sm" style="width:100%;margin-top:6px" onclick="saveBody()">Save today's numbers</button>
+      <div class="muted" id="bodyTrend" style="margin-top:12px"></div>
+    </div>
+
+    <div class="sectitle">Sleep</div>
+    <div class="card">
+      <div class="field" style="margin:0">
+        <label>Hours slept last night</label>
+        <div class="inline">
+          <input type="number" inputmode="decimal" id="inSleep" placeholder="e.g. 7.5" step="0.5">
+          <button class="btn sm" style="padding:0 18px" onclick="saveSleep()">Save</button>
+        </div>
+      </div>
+      <div class="muted" id="sleepStatus" style="margin-top:10px"></div>
+    </div>
+    <p class="muted" style="text-align:center;margin:18px 4px 4px">Effort points are a rough measure of how hard you worked — not calories to eat back. Just keep the number climbing. 💪</p>
+  </section>
+
+  <!-- HABITS -->
+  <section id="tab-habits" class="hidden">
+    <div class="card">
+      <h2>Today's healthy habits</h2>
+      <p class="muted" style="margin-top:2px">Small daily wins. Tap each one you did.</p>
+      <div id="habitList"></div>
+    </div>
+    <div class="card">
+      <div class="row"><h2>Water</h2><span class="muted" id="waterCount">0 / 8 glasses</span></div>
+      <div class="water-dots" id="waterDots"></div>
+      <div class="inline" style="margin-top:14px">
+        <button class="btn sm secondary" style="flex:1" onclick="addWater(-1)">− Remove</button>
+        <button class="btn sm" style="flex:1" onclick="addWater(1)">+ Add a glass</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHOTOS -->
+  <section id="tab-photos" class="hidden">
+    <div class="card">
+      <h2>Progress photos</h2>
+      <p class="muted" style="margin-top:2px">Same spot, same light, once a week. You'll be glad you did.</p>
+      <label class="btn" style="margin-top:14px">
+        <input type="file" accept="image/*" capture="environment" style="display:none" onchange="addPhoto(event)">
+        📷 Add a photo
+      </label>
+      <div class="tips" id="photoTip">Photos are saved only on this device, inside the app. They never leave your phone.</div>
+      <div class="photogrid" id="photoGrid"></div>
+    </div>
+  </section>
+
+  <!-- ME -->
+  <section id="tab-me" class="hidden">
+    <div class="card">
+      <h2>Badges</h2>
+      <div class="badges" id="badgeGrid" style="margin-top:14px"></div>
+    </div>
+    <div class="card">
+      <h2>Weights</h2>
+      <p class="muted" style="margin-top:2px">Turn this on when you've got weights handy — dumbbells, water jugs, cans, or a loaded backpack all work.</p>
+      <div class="habit" style="border:none;padding-top:14px" onclick="toggleWeights()">
+        <div class="tx"><b>Using weights</b><div class="muted">Adds a few weighted moves and "hold a weight" cues to your workouts. Off = pure no-equipment.</div></div>
+        <div class="switch" id="wSwitch"><i></i></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Goals & settings</h2>
+      <div class="field"><label>Daily step goal</label><input type="number" inputmode="numeric" id="setStepGoal"></div>
+      <div class="inline">
+        <div class="field"><label>Goal weight (lbs)</label><input type="number" inputmode="decimal" id="setGoalWeight"></div>
+        <div class="field"><label>Goal waist (in)</label><input type="number" inputmode="decimal" id="setGoalWaist"></div>
+      </div>
+      <button class="btn sm" style="width:100%" onclick="saveSettings()">Save settings</button>
+    </div>
+    <div class="card">
+      <h2>How you progress</h2>
+      <p class="muted" style="margin-top:4px">Every 8 workouts you move up a level (1 through 5). Each level does two things: your reps and hold times go up, <b>and a few exercises are swapped for fresh, slightly tougher moves</b> — so the workouts keep evolving instead of getting stale.</p>
+    </div>
+    <div class="card">
+      <h2>Add to your home screen</h2>
+      <p class="muted" style="margin-top:4px">Open this page in your phone's browser, tap the Share button, then <b>Add to Home Screen</b>. It'll open like a real app.</p>
+    </div>
+    <div class="card">
+      <h2>About</h2>
+      <p class="muted" style="margin-top:4px">Momentum is your personal, no-equipment daily coach. With the help of Heavenly Father, anything positive is possible — one day at a time.</p>
+      <button class="btn ghost" style="margin-top:12px" onclick="resetAll()">Reset all my data</button>
+    </div>
+  </section>
+
+</main>
+
+<nav>
+  <div class="inner">
+    <button data-tab="today" class="active" onclick="showTab('today')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>Today</button>
+    <button data-tab="progress" onclick="showTab('progress')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>Progress</button>
+    <button data-tab="habits" onclick="showTab('habits')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Habits</button>
+    <button data-tab="photos" onclick="showTab('photos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>Photos</button>
+    <button data-tab="me" onclick="showTab('me')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Me</button>
+  </div>
+</nav>
+
+<!-- PLAYER -->
+<div id="player" class="hidden">
+  <button class="pl-close" onclick="quitWorkout()">✕</button>
+  <div class="pl-top">
+    <div class="pl-progress"><i id="plBar"></i></div>
+    <div class="pl-count" id="plCount" style="margin-top:8px"></div>
+  </div>
+  <div class="pl-body" id="plBody"></div>
+  <div class="pl-foot" id="plFoot"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= DATA ================= */
+const KEY='momentum_v1';
+const todayStr=()=>new Date().toLocaleDateString('en-CA');
+function load(){
+  let d;
+  try{ d=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){ d=null; }
+  if(!d) d={};
+  d.level = d.level||1;
+  d.workoutsCompleted = d.workoutsCompleted||0;
+  d.lastCompletedDate = d.lastCompletedDate||null;
+  d.streak = d.streak||0;
+  d.completedDates = d.completedDates||[];
+  d.weight = d.weight||[];
+  d.waist = d.waist||[];
+  d.steps = d.steps||{};
+  d.sleep = d.sleep||{};
+  d.water = d.water||{};
+  d.habits = d.habits||{};
+  d.effort = d.effort||{};
+  d.photos = d.photos||[];
+  d.badges = d.badges||[];
+  d.settings = Object.assign({stepGoal:6000, goalWeight:'', goalWaist:'', useWeights:false}, d.settings||{});
+  return d;
+}
+let S=load();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ toast('Storage is full — try removing a progress photo.'); } }
+
+/* ================= MOVE LIBRARY ================= */
+// type: 'reps' | 'hold' (seconds) | 'timed' (seconds)
+const MOVES={
+  // squats
+  squat:{name:'Bodyweight Squats',type:'reps',base:8,svg:'squat',how:'Feet shoulder-width. Sit back like reaching for a chair, then stand tall.',easier:'Sit down onto a chair and stand back up.',harder:'Go slower on the way down, pause at the bottom.'},
+  squat_pulse:{name:'Pulse Squats',type:'reps',base:8,svg:'squat',how:'Lower into a squat and stay low. Do small pulses up and down without standing all the way up.',easier:'Smaller, gentler pulses.',harder:'Sink a little lower before pulsing.'},
+  squat_split:{name:'Split Squats',type:'reps',base:6,svg:'squat',how:'One foot forward, one back. Lower straight down, then press up. Do all reps, then switch legs. Counts both sides.',easier:'Hold a wall and don\'t go as deep.',harder:'Slow 3-count down each rep.'},
+  // pushes
+  pushup_wall:{name:'Wall Push-Ups',type:'reps',base:8,svg:'pushup',how:'Hands on a wall, step your feet back. Bend your elbows to bring your chest toward the wall, then press away.',easier:'Stand closer to the wall.',harder:'Step your feet further back.'},
+  pushup_knee:{name:'Knee Push-Ups',type:'reps',base:6,svg:'pushup',how:'Hands under shoulders, knees on the floor. Lower your chest, then press up.',easier:'Do them against a wall instead.',harder:'Come onto your toes.'},
+  pushup_full:{name:'Push-Ups',type:'reps',base:6,svg:'pushup',how:'On your toes, body in a straight line. Lower with control, press back up.',easier:'Drop to your knees.',harder:'Pause at the bottom of each rep.'},
+  // glutes
+  bridge:{name:'Glute Bridges',type:'reps',base:10,svg:'bridge',how:'Lie on your back, knees bent. Squeeze your seat and lift your hips up, then lower.',easier:'Lift only halfway.',harder:'Pause 2 seconds at the top.'},
+  bridge_march:{name:'Glute Bridge March',type:'reps',base:8,svg:'bridge',how:'In a glute bridge, lift one foot an inch, set it down, then the other. Keep hips up. Counts both.',easier:'Hold a regular bridge instead.',harder:'Lift the knee higher each march.'},
+  bridge_single:{name:'Single-Leg Glute Bridge',type:'reps',base:6,svg:'bridge',how:'One foot planted, the other leg straight out. Lift your hips with the one leg, then lower. Switch halfway. Counts both.',easier:'Do a regular two-foot bridge.',harder:'Pause at the top each rep.'},
+  // knees / cardio
+  kneeraise:{name:'Standing Knee Raises',type:'reps',base:10,svg:'march',how:'Stand tall. Bring one knee up toward your chest, then the other. Counts both.',easier:'Hold a wall for balance.',harder:'Bring the knee higher.'},
+  kneeraise_hop:{name:'High-Knee Skips',type:'reps',base:10,svg:'march',how:'Drive one knee up with a little hop off the other foot, then switch. Light and springy. Counts both.',easier:'Skip the hop — just quick knee raises.',harder:'Bigger hop, faster pace.'},
+  highknees:{name:'Marching High Knees',type:'timed',base:40,svg:'march',how:'March fast, driving your knees up high, arms pumping.',easier:'Slow it down.',harder:'Turn it into a light jog in place.'},
+  highknees_fast:{name:'High Knees',type:'timed',base:40,svg:'march',how:'A light jog in place, driving your knees up high and fast. Stay on the balls of your feet.',easier:'Slow to a quick march.',harder:'Knees higher, arms faster.'},
+  steptouch:{name:'Step Touch',type:'timed',base:40,svg:'walk',how:'Step to one side and tap your other foot, then back the other way. Keep a bouncy rhythm.',easier:'Slow and small.',harder:'Add an arm reach each step.'},
+  steptouch_reach:{name:'Step Touch + Reach',type:'timed',base:40,svg:'walk',how:'Step side to side, and each time reach both arms up overhead. Keep the rhythm going.',easier:'Drop the arm reach.',harder:'Add a little knee drive as you step.'},
+  lowjacks:{name:'Low-Impact Jacks',type:'timed',base:35,svg:'arms',how:'Step one foot out and raise your arms overhead, step back in, then the other foot. Jumping-jack motion without the jump.',easier:'Smaller arm movement.',harder:'Speed it up or add a small hop.'},
+  walk:{name:'Brisk Walk',type:'timed',base:300,svg:'walk',how:'Walk in place or around the house at a pace where you can talk but not sing.',easier:'Slow, steady pace.',harder:'Pump your arms, add high knees.'},
+  walk_long:{name:'Brisk Walk',type:'timed',base:360,svg:'walk',how:'Walk in place or around at a brisk, talk-but-not-sing pace. Settle into a rhythm.',easier:'Steady pace.',harder:'Pump arms, add high knees.'},
+  // planks / core
+  plank:{name:'Plank Hold',type:'hold',base:15,svg:'plank',how:'Forearms down, body in a straight line. Tighten your belly and hold steady.',easier:'Drop to your knees.',harder:'Hold longer, keep hips level.'},
+  plank_taps:{name:'Plank Shoulder Taps',type:'hold',base:16,svg:'plank',how:'Hold a plank and slowly tap one hand to the opposite shoulder, then switch, keeping hips still.',easier:'Do it from your knees.',harder:'Slow the taps down, stay steady.'},
+  plank_reach:{name:'Plank Reach-Outs',type:'hold',base:16,svg:'plank',how:'In a plank, slowly reach one arm straight forward, bring it back, then the other. Keep your middle tight.',easier:'From your knees, smaller reach.',harder:'Reach further, move slower.'},
+  deadbug:{name:'Dead Bug',type:'reps',base:8,svg:'birddog',how:'On your back, arms up, knees bent up. Lower the opposite arm and leg, then switch. Counts both.',easier:'Move just the legs, keep arms up.',harder:'Lower all the way, move slowly.'},
+  deadbug_ext:{name:'Dead Bug (Full)',type:'reps',base:8,svg:'birddog',how:'Same as the dead bug, but fully straighten the lowering arm and leg an inch off the floor. Counts both.',easier:'Bend the knee as it lowers.',harder:'Hover longer at the bottom.'},
+  sidecrunch:{name:'Standing Side Crunch',type:'reps',base:10,svg:'twist',how:'Hands behind head. Bring one elbow down toward the same-side hip, then the other. Counts both.',easier:'Just lean side to side.',harder:'Lift the knee to meet the elbow.'},
+  sidecrunch_knee:{name:'Standing Oblique Crunch',type:'reps',base:10,svg:'twist',how:'Bring your knee up and your same-side elbow down to meet it, then switch sides. Counts both.',easier:'Smaller range, tap knee to elbow lightly.',harder:'Pause and squeeze at the top.'},
+  birddog:{name:'Bird Dog',type:'reps',base:8,svg:'birddog',how:'On hands and knees, reach one arm forward and the opposite leg back. Switch. Counts both.',easier:'Just extend the leg, keep hands down.',harder:'Pause 2 seconds each rep.'},
+  birddog_hold:{name:'Bird Dog Holds',type:'reps',base:6,svg:'birddog',how:'Reach opposite arm and leg out and hold for a slow count of three before switching. Counts both.',easier:'Shorten the hold.',harder:'Hold longer, reach further.'},
+  twist:{name:'Standing Oblique Twists',type:'reps',base:12,svg:'twist',how:'Hands at your chest, gently twist your torso side to side. Counts both.',easier:'Smaller twists.',harder:'Add a knee lift on each twist.'},
+  twist_knee:{name:'Twist + Knee Drive',type:'reps',base:12,svg:'twist',how:'Twist your torso and drive the opposite knee up toward your elbow, then switch. Counts both.',easier:'Just twist, skip the knee.',harder:'Faster, with a little bounce.'},
+  superman:{name:'Superman Hold',type:'hold',base:12,svg:'superman',how:'Lie face down. Lift your arms, chest and legs off the floor and hold. Great for the back.',easier:'Lift just the arms.',harder:'Hold longer, reach further.'},
+  superman_pulse:{name:'Superman Pulses',type:'reps',base:10,svg:'superman',how:'Lift arms, chest and legs, then do small pulses up and down without touching down.',easier:'Pulse just the upper body.',harder:'Higher lifts, slower pulses.'},
+  calf:{name:'Calf Raises',type:'reps',base:12,svg:'calf',how:'Rise up onto your tiptoes, hold a beat, lower slowly.',easier:'Hold a wall for balance.',harder:'Slower lower, pause at the top.'},
+  calf_single:{name:'Single-Leg Calf Raises',type:'reps',base:8,svg:'calf',how:'Balance on one foot and rise onto your tiptoe, then lower. Switch halfway. Counts both.',easier:'Keep a toe of the other foot down for balance.',harder:'Hold the top for a beat.'},
+  lunge:{name:'Chair-Assisted Reverse Lunges',type:'reps',base:8,svg:'squat',how:'Hold a chair. Step one foot back and lower gently, then switch. Counts both.',easier:'Shorter step, don\'t go as low.',harder:'Barely touch the chair.'},
+  lunge_free:{name:'Reverse Lunges',type:'reps',base:8,svg:'squat',how:'No chair. Step one foot back, lower your back knee toward the floor, press up. Switch. Counts both.',easier:'Hold a wall for balance.',harder:'Slow 3-count down.'},
+  lunge_walk:{name:'Walking Lunges',type:'reps',base:10,svg:'walk',how:'Step forward into a lunge, then bring the back foot through into the next lunge. Counts both.',easier:'Step in place, alternating legs.',harder:'Longer steps, lower each rep.'},
+  arms:{name:'Arm Circles',type:'timed',base:40,svg:'arms',how:'Arms out to your sides. Make slow circles forward, then backward halfway through.',easier:'Smaller circles.',harder:'Bigger, slower circles.'},
+};
+
+/* Warm-up & cool-down (every active day) */
+const WARMUP=[
+  {id:'wm_march',name:'March in Place',type:'timed',base:40,svg:'march',how:'Stand tall and march, lifting your knees and swinging your arms. Get the blood flowing.',easier:'Slow it down, smaller steps.',harder:'Lift knees higher, pick up the pace.'},
+  {id:'wm_arms',name:'Arm Circles',type:'timed',base:30,svg:'arms',how:'Arms out to your sides. Make slow circles forward, then backward halfway through.',easier:'Smaller circles.',harder:'Bigger, faster circles.'},
+];
+const COOL={id:'cool',name:'Cool-Down Stretch',type:'timed',base:40,svg:'stretch',how:'Reach for your toes, then gently reach overhead. Breathe slow and easy. Great work today.',easier:'Just reach as far as is comfy.',harder:'Hold each stretch a little longer.'};
+
+/* ================= DAY PLANS (slots that evolve by level) =================
+   Each slot lists variants with the level they unlock at.
+   buildWorkout picks the highest-level variant you've reached. */
+const DAYS={
+  0:{rest:true},
+  1:{name:'Full-Body Foundations',focus:'A little of everything to build your base.',slots:[
+    [{lvl:1,id:'squat'},{lvl:3,id:'squat_pulse'},{lvl:5,id:'squat_split'}],
+    [{lvl:1,id:'pushup_wall'},{lvl:2,id:'pushup_knee'},{lvl:4,id:'pushup_full'}],
+    [{lvl:1,id:'bridge'},{lvl:3,id:'bridge_march'},{lvl:5,id:'bridge_single'}],
+    [{lvl:1,id:'kneeraise'},{lvl:4,id:'kneeraise_hop'}],
+    [{lvl:1,id:'plank'},{lvl:3,id:'plank_taps'}],
+  ]},
+  2:{name:'Core & Midsection',focus:'Today we target the belly and core.',slots:[
+    [{lvl:1,id:'deadbug'},{lvl:4,id:'deadbug_ext'}],
+    [{lvl:1,id:'sidecrunch'},{lvl:3,id:'sidecrunch_knee'}],
+    [{lvl:1,id:'bridge_march'},{lvl:5,id:'bridge_single'}],
+    [{lvl:1,id:'birddog'},{lvl:3,id:'birddog_hold'}],
+    [{lvl:1,id:'plank'},{lvl:2,id:'plank_taps'},{lvl:5,id:'plank_reach'}],
+  ]},
+  3:{rest:true},
+  4:{name:'Legs & Walk',focus:'Strong legs plus a fat-burning walk.',slots:[
+    [{lvl:1,id:'squat'},{lvl:3,id:'squat_pulse'},{lvl:5,id:'squat_split'}],
+    [{lvl:1,id:'lunge'},{lvl:3,id:'lunge_free'},{lvl:5,id:'lunge_walk'}],
+    [{lvl:1,id:'calf'},{lvl:4,id:'calf_single'}],
+    [{lvl:1,id:'bridge'},{lvl:4,id:'bridge_single'}],
+    [{lvl:1,id:'walk'}],
+  ]},
+  5:{name:'Upper Body & Core',focus:'Arms, shoulders and a tight middle.',slots:[
+    [{lvl:1,id:'pushup_wall'},{lvl:2,id:'pushup_knee'},{lvl:4,id:'pushup_full'}],
+    [{lvl:1,id:'arms'}],
+    [{lvl:1,id:'superman'},{lvl:3,id:'superman_pulse'}],
+    [{lvl:1,id:'twist'},{lvl:3,id:'twist_knee'}],
+    [{lvl:1,id:'plank'},{lvl:3,id:'plank_taps'},{lvl:5,id:'plank_reach'}],
+  ]},
+  6:{name:'Cardio Burn',focus:'Get the heart pumping and torch some energy.',slots:[
+    [{lvl:1,id:'highknees'},{lvl:4,id:'highknees_fast'}],
+    [{lvl:1,id:'kneeraise'},{lvl:3,id:'kneeraise_hop'}],
+    [{lvl:1,id:'steptouch'},{lvl:3,id:'steptouch_reach'},{lvl:5,id:'lowjacks'}],
+    [{lvl:1,id:'walk_long'}],
+    [{lvl:1,id:'sidecrunch'},{lvl:3,id:'sidecrunch_knee'}],
+  ]},
+};
+const DAYNAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+/* ================= WEIGHTS (optional) ================= */
+function wcueFor(id){
+  if(id.startsWith('squat')||id.startsWith('lunge')) return 'hold a dumbbell or jug at your chest.';
+  if(id.startsWith('bridge')) return 'rest a weight on your hips and hold it there.';
+  if(id.startsWith('calf')) return 'hold a weight in each hand at your sides.';
+  if(id.startsWith('twist')||id.startsWith('sidecrunch')) return 'hold a weight at your chest.';
+  if(id.startsWith('kneeraise')) return 'hold light weights at your sides.';
+  if(id.startsWith('deadbug')) return 'hold a light weight in each hand, arms up.';
+  return null;
+}
+const WEIGHTED={
+  curl:{id:'curl',name:'Bicep Curls',type:'reps',base:10,svg:'curl',how:'A weight in each hand, arms down. Curl up toward your shoulders, then lower slowly.',easier:'Go lighter, or curl one arm at a time.',harder:'Slow, 3-count lower each rep.'},
+  press:{id:'press',name:'Overhead Press',type:'reps',base:8,svg:'press',how:'Weights up at your shoulders. Press straight overhead, then lower with control.',easier:'Press one arm at a time, or go lighter.',harder:'Pause at the top of each press.'},
+  row:{id:'row',name:'Bent-Over Rows',type:'reps',base:10,svg:'row',how:'Hinge forward with a flat back, weights hanging. Pull them to your ribs, squeeze, lower.',easier:'Rest one hand on a chair and row one arm at a time.',harder:'Pause at the top, lower slowly.'},
+};
+const WADD={1:['curl','press'],2:['row'],4:['press'],5:['curl','press','row'],6:[]};
+
+/* ================= WORKOUT BUILD ================= */
+function scaled(base,type){
+  const f = 1 + (S.level-1)*0.22;
+  let v = Math.round(base*f);
+  if(type==='reps') v = Math.max(base, v);
+  return v;
+}
+function pickSlot(slot,lvl){
+  let chosen=slot[0];
+  for(const v of slot){ if(v.lvl<=lvl) chosen=v; }
+  return {def:MOVES[chosen.id], id:chosen.id, newAt:chosen.lvl};
+}
+function buildWorkout(dow){
+  const day=DAYS[dow];
+  if(day.rest) return null;
+  const w=S.settings.useWeights; const lvl=S.level;
+  let mid=day.slots.map(slot=>{ const s=pickSlot(slot,lvl); return {...s.def, id:s.id}; });
+  if(w && (WADD[dow]||[]).length) mid=[...mid, ...WADD[dow].map(id=>({...WEIGHTED[id]}))];
+  const list=[...WARMUP, ...mid, COOL];
+  return list.map(m=>{
+    const o={...m, target:scaled(m.base,m.type), orig:scaled(m.base,m.type)};
+    const cue=wcueFor(m.id||''); if(w&&cue) o.how = o.how + ' 💪 With weights: ' + cue;
+    return o;
+  });
+}
+// names of moves newly introduced at the current level (for the "New" tag)
+function newThisLevel(dow){
+  const day=DAYS[dow]; const s=new Set(); if(day.rest) return s;
+  day.slots.forEach(slot=>{ const p=pickSlot(slot,S.level); if(p.newAt===S.level && S.level>1) s.add(p.def.name); });
+  return s;
+}
+
+/* ================= SVG ILLUSTRATIONS ================= */
+function svg(key){
+  const s='stroke="#0d9488" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+  const F={
+    march:`<svg viewBox="0 0 120 120"><circle cx="60" cy="22" r="10" fill="#0d9488"/><path ${s} d="M60 32 v34"/><path ${s} d="M60 40 l-16 -8 M60 40 l18 10"/><path ${s} d="M60 66 l-14 26 M60 66 l14 -6 l4 26"/></svg>`,
+    arms:`<svg viewBox="0 0 120 120"><circle cx="60" cy="26" r="10" fill="#0d9488"/><path ${s} d="M60 36 v34"/><path ${s} d="M60 44 l-26 -6 M60 44 l26 -6"/><path ${s} d="M60 70 l-12 30 M60 70 l12 30"/></svg>`,
+    squat:`<svg viewBox="0 0 120 120"><circle cx="62" cy="24" r="10" fill="#0d9488"/><path ${s} d="M62 34 l-4 26"/><path ${s} d="M58 44 l22 8"/><path ${s} d="M58 60 l-14 8 l6 24 M58 60 l16 6 l0 26"/></svg>`,
+    pushup:`<svg viewBox="0 0 120 120"><circle cx="30" cy="66" r="10" fill="#0d9488"/><path ${s} d="M40 68 L96 82"/><path ${s} d="M52 71 l-6 18 M78 76 l-4 18"/><path ${s} d="M96 82 l14 4"/></svg>`,
+    plank:`<svg viewBox="0 0 120 120"><circle cx="26" cy="58" r="10" fill="#0d9488"/><path ${s} d="M36 60 L100 78"/><path ${s} d="M40 61 l0 22 M96 76 l6 12"/></svg>`,
+    bridge:`<svg viewBox="0 0 120 120"><circle cx="24" cy="70" r="10" fill="#0d9488"/><path ${s} d="M34 72 L70 56 L92 88"/><path ${s} d="M70 56 l-2 -14"/></svg>`,
+    birddog:`<svg viewBox="0 0 120 120"><circle cx="40" cy="44" r="10" fill="#0d9488"/><path ${s} d="M48 48 L84 62"/><path ${s} d="M54 51 l-2 22 M78 60 l4 20"/><path ${s} d="M48 48 l-16 -8 M84 62 l18 -6"/></svg>`,
+    superman:`<svg viewBox="0 0 120 120"><circle cx="30" cy="58" r="10" fill="#0d9488"/><path ${s} d="M40 62 L86 74"/><path ${s} d="M40 62 l-14 -12 M86 74 l16 -14"/></svg>`,
+    twist:`<svg viewBox="0 0 120 120"><circle cx="60" cy="24" r="10" fill="#0d9488"/><path ${s} d="M60 34 v32"/><path ${s} d="M60 44 l-20 10 M60 44 l24 -4"/><path ${s} d="M60 66 l-12 30 M60 66 l12 30"/></svg>`,
+    calf:`<svg viewBox="0 0 120 120"><circle cx="60" cy="22" r="10" fill="#0d9488"/><path ${s} d="M60 32 v36"/><path ${s} d="M60 40 l-16 0 M60 40 l16 0"/><path ${s} d="M60 68 l-8 24 l-4 6 M60 68 l8 24 l4 6"/></svg>`,
+    walk:`<svg viewBox="0 0 120 120"><circle cx="58" cy="22" r="10" fill="#0d9488"/><path ${s} d="M58 32 l4 30"/><path ${s} d="M60 42 l-16 6 M60 42 l16 12"/><path ${s} d="M62 62 l-16 20 M62 62 l14 24"/></svg>`,
+    stretch:`<svg viewBox="0 0 120 120"><circle cx="60" cy="28" r="10" fill="#0d9488"/><path ${s} d="M60 38 q -6 20 -14 32"/><path ${s} d="M56 50 l-8 22 M56 50 l6 18"/><path ${s} d="M46 70 l-6 26 M46 70 l16 22"/></svg>`,
+    curl:`<svg viewBox="0 0 120 120"><circle cx="60" cy="24" r="10" fill="#0d9488"/><path ${s} d="M60 34 v34"/><path ${s} d="M60 44 l-14 8 l2 -18 M60 44 l14 8 l-2 -18"/><path ${s} d="M60 68 l-10 28 M60 68 l10 28"/><rect x="40" y="30" width="12" height="9" rx="2" fill="#fb7185"/><rect x="68" y="30" width="12" height="9" rx="2" fill="#fb7185"/></svg>`,
+    press:`<svg viewBox="0 0 120 120"><circle cx="60" cy="34" r="10" fill="#0d9488"/><path ${s} d="M60 44 v28"/><path ${s} d="M60 50 l-14 -20 M60 50 l14 -20"/><path ${s} d="M60 72 l-10 24 M60 72 l10 24"/><rect x="40" y="22" width="12" height="9" rx="2" fill="#fb7185"/><rect x="68" y="22" width="12" height="9" rx="2" fill="#fb7185"/></svg>`,
+    row:`<svg viewBox="0 0 120 120"><circle cx="34" cy="42" r="10" fill="#0d9488"/><path ${s} d="M42 46 L88 60"/><path ${s} d="M58 50 l-4 26 M58 50 l8 -4"/><path ${s} d="M88 60 l4 24"/><rect x="46" y="74" width="14" height="9" rx="2" fill="#fb7185"/></svg>`,
+  };
+  return F[key]||F.march;
+}
+
+/* ================= RENDER: TODAY ================= */
+function renderToday(){
+  const now=new Date(); const dow=now.getDay();
+  document.getElementById('greet').textContent = greeting();
+  document.getElementById('hdrLevel').textContent = S.level;
+  document.getElementById('todayDate').textContent = now.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  const c=document.getElementById('todayCard');
+  const day=DAYS[dow];
+  const didToday = S.lastCompletedDate===todayStr();
+
+  if(day.rest){
+    c.innerHTML=`<div class="row"><h2>Rest & Recover</h2><span class="pill rest">${DAYNAMES[dow]}</span></div>
+      <p class="muted" style="margin-top:8px">Today is a recovery day. Rest is when your body actually gets stronger. Take a gentle walk if you like, drink your water, and get good sleep.</p>
+      <div class="tips">You still get credit for the healthy habits below — go log your water and sleep. 💧</div>`;
+    return;
+  }
+  const wk=buildWorkout(dow);
+  const fresh=newThisLevel(dow);
+  const mins=Math.round(wk.reduce((a,m)=> a + (m.type==='reps'? 30 : m.target) ,0)/60);
+  let items=wk.map(m=>`<div class="movepv"><div class="ic">${svg(m.svg)}</div>
+      <div style="flex:1"><div class="nm">${m.name}${fresh.has(m.name)?'<span class="pill new">NEW</span>':''}</div><div class="dt">${moveLabel(m)}</div></div></div>`).join('');
+  const freshNote = fresh.size? `<div class="tips">✨ New at Level ${S.level}: ${[...fresh].join(', ')}. Fresh moves to keep you progressing.</div>` : '';
+  c.innerHTML=`<div class="row"><h2>${day.name}</h2><span class="pill go">${didToday?'Done ✔':'Level '+S.level}</span></div>
+    <p class="muted" style="margin-top:4px">${day.focus} · about ${mins} min${S.settings.useWeights?' · 💪 weights on':''}</p>
+    <div style="margin:12px 0">${items}</div>
+    ${freshNote}
+    <button class="btn" style="margin-top:12px" onclick="startWorkout()">${didToday?'Do it again':'Start workout'} ▶</button>`;
+}
+function moveLabel(m){
+  if(m.type==='reps') return m.target+' reps';
+  return m.target>=60 ? Math.round(m.target/60*10)/10+' min' : m.target+' sec';
+}
+function greeting(){
+  const h=new Date().getHours();
+  const t = h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  return t+', Cory';
+}
+
+/* ================= PLAYER ================= */
+let W=null, idx=0, phase='ex', timer=null, remain=0, paused=false;
+function startWorkout(){
+  W=buildWorkout(new Date().getDay()); if(!W) return;
+  idx=0; phase='ex';
+  document.getElementById('player').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+  showStep();
+}
+function quitWorkout(){
+  clearInterval(timer); timer=null;
+  document.getElementById('player').classList.add('hidden');
+  document.body.style.overflow='';
+}
+function plProgress(){
+  document.getElementById('plBar').style.width = (idx/W.length*100)+'%';
+  document.getElementById('plCount').textContent = `Move ${idx+1} of ${W.length}`;
+}
+function showStep(){
+  clearInterval(timer); timer=null; paused=false;
+  const m=W[idx]; plProgress();
+  document.getElementById('player').classList.remove('pl-rest');
+  const body=document.getElementById('plBody'), foot=document.getElementById('plFoot');
+  body.innerHTML=`<div class="pl-illus">${svg(m.svg)}</div>
+    <div class="pl-name">${m.name}</div>
+    <div class="pl-target ${m.type!=='reps'?'timer':''}" id="plTarget"></div>
+    <div class="pl-how">${m.how}</div>
+    <div class="pl-adj">
+      <button class="btn ghost sm" onclick="adjust(-1)">😌 Easier</button>
+      <button class="btn ghost sm" onclick="adjust(1)">🔥 Harder</button>
+    </div>`;
+  if(m.type==='reps'){
+    document.getElementById('plTarget').textContent=m.target+' reps';
+    foot.innerHTML=`<button class="btn" onclick="nextStep()">Done ✓</button>`;
+  }else{
+    remain=m.target;
+    document.getElementById('plTarget').textContent=fmt(remain);
+    foot.innerHTML=`<div class="inline"><button class="btn secondary" style="flex:1" onclick="togglePause()" id="pauseBtn">Pause</button><button class="btn" style="flex:1" onclick="nextStep()">Skip ›</button></div>`;
+    runTimer();
+  }
+}
+function runTimer(){
+  clearInterval(timer);
+  timer=setInterval(()=>{
+    if(paused) return;
+    remain--;
+    document.getElementById('plTarget').textContent=fmt(remain);
+    if(remain<=0){ clearInterval(timer); timer=null; nextStep(); }
+  },1000);
+}
+function togglePause(){ paused=!paused; document.getElementById('pauseBtn').textContent = paused?'Resume':'Pause'; }
+function fmt(s){ s=Math.max(0,s); const m=Math.floor(s/60), r=s%60; return m>0? m+':'+String(r).padStart(2,'0') : s+'s'; }
+function adjust(dir){
+  const m=W[idx];
+  if(m.type==='reps'){ m.target=Math.max(2, m.target + dir*2); document.getElementById('plTarget').textContent=m.target+' reps'; }
+  else { const d=dir*10; m.target=Math.max(10,m.target+d); remain=Math.max(1,remain+d); document.getElementById('plTarget').textContent=fmt(remain); }
+  if(dir>0 && S.settings.useWeights && m.type==='reps') toast('Turned it up 🔥 — or grab a heavier weight');
+  else toast(dir>0?'Turned it up 🔥':'Eased it off 😌');
+}
+function nextStep(){
+  clearInterval(timer); timer=null;
+  if(idx>=W.length-1){ return finishWorkout(); }
+  const next=W[idx+1];
+  phase='rest';
+  document.getElementById('player').classList.add('pl-rest');
+  plProgress();
+  const body=document.getElementById('plBody'), foot=document.getElementById('plFoot');
+  remain=20;
+  body.innerHTML=`<div class="pl-illus">💧</div><div class="pl-count">Rest</div>
+    <div class="pl-target timer" id="plTarget">${fmt(remain)}</div>
+    <div class="pl-how">Catch your breath. Take a sip of water.</div>
+    <div class="pl-next">Next: <b>${next.name}</b> — ${moveLabel(next)}</div>`;
+  body.querySelector('.pl-illus').style.fontSize='70px';
+  foot.innerHTML=`<button class="btn" onclick="afterRest()">I'm ready ›</button>`;
+  clearInterval(timer);
+  timer=setInterval(()=>{ remain--; const t=document.getElementById('plTarget'); if(t)t.textContent=fmt(remain); if(remain<=0){ afterRest(); } },1000);
+}
+function afterRest(){ clearInterval(timer); timer=null; idx++; phase='ex'; showStep(); }
+
+function finishWorkout(){
+  clearInterval(timer); timer=null;
+  const t=todayStr();
+  const already = S.lastCompletedDate===t;
+  S.workoutsCompleted++;
+  const pts = Math.round((W.length-1)*4*(1+(S.level-1)*0.15));
+  S.effort[t]=(S.effort[t]||0)+pts;
+  if(!already){
+    if(!S.completedDates.includes(t)) S.completedDates.push(t);
+    S.streak = computeStreak();
+    S.lastCompletedDate=t;
+  }
+  let leveled=false;
+  const targetLevel = Math.min(5, 1+Math.floor(S.workoutsCompleted/8));
+  if(targetLevel>S.level){ S.level=targetLevel; leveled=true; }
+  checkBadges();
+  save();
+  const nextIn = 8 - (S.workoutsCompleted%8);
+  document.getElementById('player').classList.remove('pl-rest');
+  document.getElementById('plBar').style.width='100%';
+  document.getElementById('plCount').textContent='Complete!';
+  document.getElementById('plBody').innerHTML=`<div class="finish">
+    <div class="big">🎉</div>
+    <h2>Workout done!</h2>
+    <p class="muted">That's ${S.workoutsCompleted} total. You earned <b>${pts} effort points</b> today.</p>
+    ${leveled?`<div class="pill go" style="margin-top:12px;font-size:14px">⬆ Leveled up to Level ${S.level}!</div>
+      <p class="muted" style="margin-top:10px">Fresh moves are waiting in your next workouts — check them out on the Today screen.</p>`:
+      (S.level<5?`<p class="muted" style="margin-top:10px">${nextIn} more to reach Level ${S.level+1} and unlock new moves.</p>`:`<p class="muted" style="margin-top:10px">You're at the top level — keep it up! 💪</p>`)}
+    <p class="muted" style="margin-top:14px;font-style:italic">With the help of Heavenly Father, anything positive is possible.</p>
+  </div>`;
+  document.getElementById('plFoot').innerHTML=`<button class="btn" onclick="quitWorkout();refreshAll();showTab('today')">Finish</button>`;
+}
+function computeStreak(){
+  const set=new Set(S.completedDates);
+  let n=0; let d=new Date();
+  if(!set.has(todayStr())) d.setDate(d.getDate()-1);
+  for(;;){
+    const ds=d.toLocaleDateString('en-CA');
+    const dow=d.getDay();
+    if(set.has(ds)){ n++; d.setDate(d.getDate()-1); }
+    else if(dow===0||dow===3){ d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return n;
+}
+
+/* ================= BADGES ================= */
+const BADGES=[
+  {id:'first',em:'🌱',label:'First workout',test:()=>S.workoutsCompleted>=1},
+  {id:'w5',em:'🖐️',label:'5 workouts',test:()=>S.workoutsCompleted>=5},
+  {id:'w10',em:'💪',label:'10 workouts',test:()=>S.workoutsCompleted>=10},
+  {id:'w25',em:'⭐',label:'25 workouts',test:()=>S.workoutsCompleted>=25},
+  {id:'w50',em:'🏆',label:'50 workouts',test:()=>S.workoutsCompleted>=50},
+  {id:'streak3',em:'🔥',label:'3-day streak',test:()=>S.streak>=3},
+  {id:'streak7',em:'⚡',label:'7-day streak',test:()=>S.streak>=7},
+  {id:'lvl5',em:'👑',label:'Reached Level 5',test:()=>S.level>=5},
+];
+function checkBadges(){
+  BADGES.forEach(b=>{ if(b.test() && !S.badges.includes(b.id)){ S.badges.push(b.id); setTimeout(()=>toast(`Badge unlocked: ${b.em} ${b.label}`),400); } });
+}
+function renderBadges(){
+  document.getElementById('badgeGrid').innerHTML=BADGES.map(b=>{
+    const e=S.badges.includes(b.id);
+    return `<div class="badge ${e?'earned':''}"><div class="em">${b.em}</div><div class="bl">${b.label}</div></div>`;
+  }).join('');
+}
+
+/* ================= PROGRESS ================= */
+function renderProgress(){
+  document.getElementById('lvlPill').textContent='Level '+S.level;
+  const inLvl = S.workoutsCompleted%8;
+  document.getElementById('lvlBar').style.width = (S.level>=5?100:inLvl/8*100)+'%';
+  document.getElementById('lvlText').textContent = S.level>=5 ? `Top level reached — ${S.workoutsCompleted} workouts done.` : `${8-inLvl} more workouts to Level ${S.level+1} (new moves unlock then).`;
+  document.getElementById('stTotal').textContent=S.workoutsCompleted;
+  document.getElementById('stWeek').innerHTML = weekCount()+' <small>/ 5</small>';
+  document.getElementById('stEffort').innerHTML = weekEffort()+' <small>pts</small>';
+  document.getElementById('stStreak').textContent = S.streak;
+  const lw=last(S.weight), lwa=last(S.waist);
+  if(lw && lw.date===todayStr()) document.getElementById('inWeight').value=lw.val;
+  if(lwa && lwa.date===todayStr()) document.getElementById('inWaist').value=lwa.val;
+  document.getElementById('bodyTrend').innerHTML=trendText();
+  const sl=S.sleep[todayStr()];
+  document.getElementById('sleepStatus').textContent = sl? `Logged ${sl} hours last night. Aim for 7–9.` : 'Good sleep melts stress and cravings. Aim for 7–9 hours.';
+}
+function last(arr){ return arr.length? arr[arr.length-1] : null; }
+function weekCount(){ const {start}=weekBounds(); return S.completedDates.filter(d=>d>=start).length; }
+function weekEffort(){ const {start}=weekBounds(); return Object.entries(S.effort).filter(([d])=>d>=start).reduce((a,[,v])=>a+v,0); }
+function weekBounds(){ const d=new Date(); const day=d.getDay(); const mon=new Date(d); mon.setDate(d.getDate()-((day+6)%7)); return {start:mon.toLocaleDateString('en-CA')}; }
+function trendText(){
+  const w=S.weight, wa=S.waist; let out=[];
+  if(w.length>=2){ const diff=(w[w.length-1].val-w[0].val).toFixed(1); out.push(`Weight ${diff<=0?'down':'up'} ${Math.abs(diff)} lbs since you started.`); }
+  else if(w.length===1){ out.push('First weight logged — nice start.'); }
+  if(wa.length>=2){ const diff=(wa[wa.length-1].val-wa[0].val).toFixed(1); out.push(`Waist ${diff<=0?'down':'up'} ${Math.abs(diff)} in.`); }
+  const gw=S.settings.goalWeight; if(gw && w.length){ const to=(w[w.length-1].val-gw).toFixed(1); if(to>0) out.push(`${to} lbs to your goal.`); }
+  return out.join('<br>')||'Log your weight and waist to see your trend here.';
+}
+
+/* ================= SAVE ACTIONS ================= */
+function saveBody(){
+  const w=parseFloat(document.getElementById('inWeight').value);
+  const wa=parseFloat(document.getElementById('inWaist').value);
+  const t=todayStr();
+  if(!isNaN(w)){ S.weight=S.weight.filter(x=>x.date!==t); S.weight.push({date:t,val:w}); }
+  if(!isNaN(wa)){ S.waist=S.waist.filter(x=>x.date!==t); S.waist.push({date:t,val:wa}); }
+  save(); refreshAll(); toast('Saved. Keep it up!');
+}
+function saveSteps(){
+  const v=parseInt(document.getElementById('stepInput').value,10);
+  if(isNaN(v)) return toast('Type a number first.');
+  S.steps[todayStr()]=v; save(); renderStepBar(); toast('Steps saved 👣');
+}
+function renderStepBar(){
+  const v=S.steps[todayStr()]||0; const goal=S.settings.stepGoal||6000;
+  document.getElementById('stepBar').style.width=Math.min(100,v/goal*100)+'%';
+  document.getElementById('stepStatus').textContent = v? `${v.toLocaleString()} of ${goal.toLocaleString()} steps` : `Goal: ${goal.toLocaleString()} steps`;
+  if(S.steps[todayStr()]!=null) document.getElementById('stepInput').value=v;
+  const lw=last(S.weight), lwa=last(S.waist);
+  document.getElementById('qWeight').textContent = lw? lw.val+' lb' : '—';
+  document.getElementById('qWaist').textContent = lwa? lwa.val+' in' : '—';
+}
+function saveSleep(){
+  const v=parseFloat(document.getElementById('inSleep').value);
+  if(isNaN(v)) return toast('Type your hours first.');
+  S.sleep[todayStr()]=v; save(); renderProgress(); toast('Sleep saved 😴');
+}
+
+/* ================= HABITS ================= */
+const HABITS=[
+  {id:'veggies',t:'Ate fruits or veggies',s:'A serving at a couple of meals.'},
+  {id:'mindful',t:'Ate mindfully',s:'Stopped when full, no eating out of boredom.'},
+  {id:'nolate',t:'No late-night snacking',s:'Kitchen closed after dinner.'},
+  {id:'move',t:'Moved my body',s:'A walk, chores, stairs — anything counts.'},
+  {id:'sugar',t:'Skipped the sugary drinks',s:'Water or unsweetened instead.'},
+];
+function renderHabits(){
+  const t=todayStr(); const h=S.habits[t]||{};
+  document.getElementById('habitList').innerHTML=HABITS.map(x=>
+    `<div class="habit" onclick="toggleHabit('${x.id}')"><div class="tx"><b>${x.t}</b><div class="muted">${x.s}</div></div>
+     <div class="check ${h[x.id]?'on':''}">${h[x.id]?'✓':''}</div></div>`).join('');
+  renderWater();
+}
+function toggleHabit(id){
+  const t=todayStr(); S.habits[t]=S.habits[t]||{}; S.habits[t][id]=!S.habits[t][id]; save(); renderHabits();
+}
+function renderWater(){
+  const t=todayStr(); const c=S.water[t]||0; const goal=8;
+  document.getElementById('waterCount').textContent=`${c} / ${goal} glasses`;
+  let dots=''; for(let i=0;i<Math.max(goal,c);i++) dots+=`<div class="wd ${i<c?'on':''}"></div>`;
+  document.getElementById('waterDots').innerHTML=dots;
+}
+function addWater(n){
+  const t=todayStr(); S.water[t]=Math.max(0,(S.water[t]||0)+n); save(); renderWater();
+}
+
+/* ================= PHOTOS ================= */
+function addPhoto(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=720; let w=img.width,h=img.height;
+      const sc=Math.min(1,max/Math.max(w,h)); w=Math.round(w*sc); h=Math.round(h*sc);
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      const url=cv.toDataURL('image/jpeg',0.7);
+      S.photos.push({date:todayStr(),dataUrl:url});
+      try{ save(); }catch(err){}
+      renderPhotos(); toast('Photo saved 📷');
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+function renderPhotos(){
+  const g=document.getElementById('photoGrid');
+  g.innerHTML=S.photos.map((p,i)=>`<div class="ph"><img src="${p.dataUrl}"><div class="d">${fmtDate(p.date)}</div><div class="x" onclick="delPhoto(${i})">✕</div></div>`).join('');
+}
+function delPhoto(i){ S.photos.splice(i,1); save(); renderPhotos(); }
+function fmtDate(d){ const dt=new Date(d+'T00:00'); return dt.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+
+/* ================= SETTINGS ================= */
+function renderSettings(){
+  document.getElementById('setStepGoal').value=S.settings.stepGoal;
+  document.getElementById('setGoalWeight').value=S.settings.goalWeight;
+  document.getElementById('setGoalWaist').value=S.settings.goalWaist;
+  document.getElementById('wSwitch').classList.toggle('on', !!S.settings.useWeights);
+}
+function toggleWeights(){
+  S.settings.useWeights=!S.settings.useWeights; save();
+  document.getElementById('wSwitch').classList.toggle('on', S.settings.useWeights);
+  renderToday();
+  toast(S.settings.useWeights?'Weights on 💪 — moves updated':'Weights off — back to no-equipment');
+}
+function saveSettings(){
+  S.settings.stepGoal=parseInt(document.getElementById('setStepGoal').value,10)||6000;
+  S.settings.goalWeight=document.getElementById('setGoalWeight').value;
+  S.settings.goalWaist=document.getElementById('setGoalWaist').value;
+  save(); refreshAll(); toast('Settings saved ✓');
+}
+function resetAll(){
+  if(confirm('This erases all your Momentum data on this device. Are you sure?')){
+    localStorage.removeItem(KEY); S=load(); refreshAll(); showTab('today'); toast('All data reset.');
+  }
+}
+
+/* ================= NAV / UTIL ================= */
+function showTab(name){
+  ['today','progress','habits','photos','me'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('hidden',t!==name);
+  });
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  window.scrollTo(0,0);
+  refreshAll();
+}
+function refreshAll(){ renderToday(); renderStepBar(); renderProgress(); renderHabits(); renderPhotos(); renderSettings(); renderBadges(); }
+let toastT=null;
+function toast(msg){
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+/* ================= INIT ================= */
+refreshAll();
+</script>
+</body>
+</html>
