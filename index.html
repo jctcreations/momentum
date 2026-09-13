@@ -126,6 +126,8 @@
   .pl-rest .pl-illus{background:#eff6ff}
   .pl-count{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px}
   .pl-next{margin-top:8px;font-size:14px;color:var(--muted)}
+  .pl-ready{margin-top:16px;font-size:15px;font-weight:700;color:#0369a1;background:#e0f2fe;padding:10px 18px;border-radius:14px}
+  .pl-ready b{font-size:22px;font-variant-numeric:tabular-nums}
   .pl-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;font-size:26px;color:var(--muted);width:40px;height:40px}
   .finish{text-align:center;padding:30px 20px}
   .finish .big{font-size:56px}
@@ -551,7 +553,7 @@ function greeting(){
 }
 
 /* ================= PLAYER ================= */
-let W=null, idx=0, phase='ex', timer=null, remain=0, paused=false;
+let W=null, idx=0, phase='ex', timer=null, readyTimer=null, remain=0, paused=false;
 function startWorkout(){
   W=buildWorkout(new Date().getDay()); if(!W) return;
   idx=0; phase='ex';
@@ -560,7 +562,7 @@ function startWorkout(){
   showStep();
 }
 function quitWorkout(){
-  clearInterval(timer); timer=null;
+  clearInterval(timer); timer=null; clearInterval(readyTimer); readyTimer=null;
   document.getElementById('player').classList.add('hidden');
   document.body.style.overflow='';
 }
@@ -569,7 +571,7 @@ function plProgress(){
   document.getElementById('plCount').textContent = `Move ${idx+1} of ${W.length}`;
 }
 function showStep(){
-  clearInterval(timer); timer=null; paused=false;
+  clearInterval(timer); timer=null; clearInterval(readyTimer); readyTimer=null; paused=false;
   const m=W[idx]; plProgress();
   document.getElementById('player').classList.remove('pl-rest');
   const body=document.getElementById('plBody'), foot=document.getElementById('plFoot');
@@ -582,14 +584,33 @@ function showStep(){
       <button class="btn ghost sm" onclick="adjust(1)">🔥 Harder</button>
     </div>`;
   if(m.type==='reps'){
+    phase='ex';
     document.getElementById('plTarget').textContent=m.target+' reps';
     foot.innerHTML=`<button class="btn" onclick="nextStep()">Done ✓</button>`;
   }else{
+    /* 5-second get-ready so you can read the move before the timer starts */
+    phase='ready';
     remain=m.target;
     document.getElementById('plTarget').textContent=fmt(remain);
-    foot.innerHTML=`<div class="inline"><button class="btn secondary" style="flex:1" onclick="togglePause()" id="pauseBtn">Pause</button><button class="btn" style="flex:1" onclick="nextStep()">Skip ›</button></div>`;
-    runTimer();
+    const rdy=document.createElement('div'); rdy.className='pl-ready'; rdy.id='plReady';
+    rdy.innerHTML='Get ready… <b id="plReadyNum">5</b>';
+    body.appendChild(rdy);
+    foot.innerHTML=`<button class="btn" onclick="beginTimer()">Start now ›</button>`;
+    let rc=5;
+    readyTimer=setInterval(()=>{
+      rc--;
+      const n=document.getElementById('plReadyNum'); if(n)n.textContent=rc;
+      if(rc<=0) beginTimer();
+    },1000);
   }
+}
+function beginTimer(){
+  clearInterval(readyTimer); readyTimer=null;
+  const m=W[idx]; phase='ex'; remain=m.target;
+  const rdy=document.getElementById('plReady'); if(rdy) rdy.remove();
+  const t=document.getElementById('plTarget'); if(t) t.textContent=fmt(remain);
+  document.getElementById('plFoot').innerHTML=`<div class="inline"><button class="btn secondary" style="flex:1" onclick="togglePause()" id="pauseBtn">Pause</button><button class="btn" style="flex:1" onclick="nextStep()">Skip ›</button></div>`;
+  runTimer();
 }
 function runTimer(){
   clearInterval(timer);
@@ -610,7 +631,7 @@ function adjust(dir){
   else toast(dir>0?'Turned it up 🔥':'Eased it off 😌');
 }
 function nextStep(){
-  clearInterval(timer); timer=null;
+  clearInterval(timer); timer=null; clearInterval(readyTimer); readyTimer=null;
   if(idx>=W.length-1){ return finishWorkout(); }
   const next=W[idx+1];
   phase='rest';
