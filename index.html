@@ -135,11 +135,20 @@
   .pl-prep{margin:12px auto 0;font-size:15px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:9px 14px;display:inline-block;max-width:320px}
   .pl-ready{margin-top:16px;font-size:15px;font-weight:700;color:#0369a1;background:#e0f2fe;padding:10px 18px;border-radius:14px}
   .pl-ready b{font-size:22px;font-variant-numeric:tabular-nums}
+  #ytBox{position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);width:96px;height:54px;border-radius:10px;overflow:hidden;opacity:.9;box-shadow:0 4px 12px rgba(0,0,0,.15);display:none}
+  #ytBox.on{display:block}
+  #ytBox iframe{width:96px;height:54px;border:0;pointer-events:none}
   .pl-music{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:62px;font-size:20px;width:40px;height:40px;border-radius:12px;background:rgba(13,148,136,.1)}
   .pl-close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;font-size:26px;color:var(--muted);width:40px;height:40px}
   .finish{text-align:center;padding:30px 20px}
   .finish .big{font-size:56px}
   .finish h2{font-size:26px;margin:8px 0}
+  .mtip{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:300;display:grid;place-items:center;padding:20px}
+  .mtip-box{background:#fff;border-radius:20px;padding:24px 22px;max-width:380px;text-align:center;box-shadow:var(--shadow)}
+  .mtip-box h3{margin:6px 0 8px}
+  .mtip-box ul{text-align:left;padding-left:20px;margin:10px 0}
+  .mtip-box li{margin:6px 0}
+  .mtip-box .btn{margin-top:12px}
   .toast{position:fixed;bottom:calc(90px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;font-size:14px;z-index:200;box-shadow:var(--shadow);opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
   .toast.show{opacity:1}
   .tips{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:12px;font-size:13px;margin-top:10px}
@@ -286,7 +295,15 @@
     </div>
     <div class="card">
       <h2>Workout music</h2>
-      <p class="muted" style="margin-top:2px">Pick the music app you use. The 🎵 button on Today and in the workout opens it so you can start your own playlist.</p>
+      <p class="muted" style="margin-top:2px">Save a YouTube mix or playlist once. It plays right inside Momentum when you start a workout, gets softer on rest breaks and the 3-2-1 countdown, and stops when you finish. It picks up where it left off next time.</p>
+      <div class="field"><label>YouTube mix or playlist link</label><input type="url" id="setYtLink" placeholder="Paste a YouTube link" onchange="saveYt()"></div>
+      <div class="muted" id="ytStatus" style="font-size:13px;margin-top:-4px"></div>
+      <div class="habit" style="border:none;padding-top:12px" onclick="toggleYt()">
+        <div class="tx"><b>Play music during workouts</b><div class="muted">Tap the 🎵 in a workout to mute or unmute.</div></div>
+        <div class="switch" id="ytSwitch"><i></i></div>
+      </div>
+      <div class="sectitle" style="margin:18px 0 6px">Or use a music app instead</div>
+      <p class="muted" style="margin-top:0;font-size:13px">Used when YouTube music is off. The 🎵 button opens the app so you can start your own playlist.</p>
       <div class="field"><label>My music app</label>
         <select id="setMusicApp" onchange="saveMusic()">
           <option value="spotify">Spotify</option>
@@ -341,7 +358,8 @@
 
 <!-- PLAYER -->
 <div id="player" class="hidden">
-  <button class="pl-music" onclick="openMusic(true)" aria-label="Open my music">🎵</button>
+  <button class="pl-music" id="plMusic" onclick="musicButton()" aria-label="Music">🎵</button>
+  <div id="ytBox"><div id="ytFrame"></div></div>
   <button class="pl-close" onclick="quitWorkout()">✕</button>
   <div class="pl-top">
     <div class="pl-progress"><i id="plBar"></i></div>
@@ -375,7 +393,7 @@ function load(){
   d.effort = d.effort||{};
   d.photos = d.photos||[];
   d.badges = d.badges||[];
-  d.settings = Object.assign({stepGoal:6000, goalWeight:'', goalWaist:'', useWeights:false, musicApp:'spotify', musicLink:'', voice:true}, d.settings||{});
+  d.settings = Object.assign({stepGoal:6000, goalWeight:'', goalWaist:'', useWeights:false, musicApp:'spotify', musicLink:'', voice:true, ytLink:'https://music.youtube.com/channel/UCFv5dsEygVFgTLE0PgCp5ng', ytOn:true, ytPos:0, ytIdx:0}, d.settings||{});
   return d;
 }
 let S=load();
@@ -734,8 +752,8 @@ function renderToday(){
     <p class="muted" style="margin-top:4px">${day.focus} · about ${mins} min${S.settings.useWeights?' · 💪 weights on':''}</p>
     <div style="margin:12px 0">${items}</div>
     ${freshNote}
-    <button class="btn secondary" style="margin-top:12px" onclick="openMusic(false)">🎵 Start my music</button>
-    <div class="muted" style="font-size:13px;text-align:center;margin-top:6px">Get your playlist going, then come back and tap Start.</div>
+    ${ytReady()? `<div class="muted" style="font-size:13px;text-align:center;margin-top:14px">🎵 Your music starts when you tap Start workout.</div>` : `<button class="btn secondary" style="margin-top:12px" onclick="openMusic(false)">🎵 Start my music</button>
+    <div class="muted" style="font-size:13px;text-align:center;margin-top:6px">Get your playlist going, then come back and tap Start.</div>`}
     <button class="btn" style="margin-top:10px" onclick="startWorkout()">${didToday?'Do it again':'Start workout'} ▶</button>`;
 }
 function moveLabel(m){
@@ -772,6 +790,7 @@ function startWorkout(){
   document.getElementById('player').classList.remove('hidden');
   document.body.style.overflow='hidden';
   keepAwake();
+  ytPlay();
   /* silent 'unlock' so iPhones allow the countdown voice later */
   try{ if(S.settings.voice!==false && 'speechSynthesis' in window){ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); } }catch(e){}
   showStep();
@@ -781,6 +800,7 @@ function quitWorkout(){
   document.getElementById('player').classList.add('hidden');
   document.body.style.overflow='';
   letSleep(); try{speechSynthesis.cancel();}catch(e){}
+  ytStop();
 }
 function plProgress(){
   document.getElementById('plBar').style.width = (idx/W.length*100)+'%';
@@ -788,7 +808,7 @@ function plProgress(){
 }
 function showStep(){
   clearInterval(timer); timer=null; clearInterval(readyTimer); readyTimer=null; paused=false;
-  const m=W[idx]; plProgress();
+  const m=W[idx]; plProgress(); ytVol(70);
   document.getElementById('player').classList.remove('pl-rest');
   const body=document.getElementById('plBody'), foot=document.getElementById('plFoot');
   body.innerHTML=`<div class="pl-illus">${svg(animKey(m),true)}</div>
@@ -834,7 +854,7 @@ function runTimer(){
     if(paused) return;
     remain--;
     document.getElementById('plTarget').textContent=fmt(remain);
-    if(remain>0 && remain<=3) say(remain);
+    if(remain>0 && remain<=3){ say(remain); ytVol(30); }
     if(remain<=0){ clearInterval(timer); timer=null; say('Done'); nextStep(); }
   },1000);
 }
@@ -851,7 +871,7 @@ function nextStep(){
   clearInterval(timer); timer=null; clearInterval(readyTimer); readyTimer=null;
   if(idx>=W.length-1){ return finishWorkout(); }
   const next=W[idx+1];
-  phase='rest';
+  phase='rest'; ytVol(35);
   document.getElementById('player').classList.add('pl-rest');
   plProgress();
   const body=document.getElementById('plBody'), foot=document.getElementById('plFoot');
@@ -871,7 +891,7 @@ function nextStep(){
 function afterRest(){ clearInterval(timer); timer=null; idx++; phase='ex'; showStep(); }
 
 function finishWorkout(){
-  clearInterval(timer); timer=null; letSleep();
+  clearInterval(timer); timer=null; letSleep(); ytStop();
   const t=todayStr();
   const already = S.lastCompletedDate===t;
   const soft=!!(DAYS[new Date().getDay()]||{}).soft;
@@ -1078,6 +1098,10 @@ function renderSettings(){
   document.getElementById('setGoalWaist').value=S.settings.goalWaist;
   document.getElementById('wSwitch').classList.toggle('on', !!S.settings.useWeights);
   document.getElementById('vSwitch').classList.toggle('on', S.settings.voice!==false);
+  document.getElementById('setYtLink').value=S.settings.ytLink||'';
+  document.getElementById('ytSwitch').classList.toggle('on', S.settings.ytOn!==false);
+  const yp=ytParse(S.settings.ytLink||'');
+  document.getElementById('ytStatus').textContent = (yp.v||yp.list) ? '✓ Music saved. It plays when you tap Start workout.' : (S.settings.ytLink? 'Hmm, that doesn\'t look like a YouTube link.' : 'No music saved yet.');
   document.getElementById('setMusicApp').value=S.settings.musicApp||'spotify';
   document.getElementById('setMusicLink').value=S.settings.musicLink||'';
 }
@@ -1095,12 +1119,112 @@ function saveMusic(){
   if(l && !/^https?:\/\//i.test(l)) l='https://'+l;
   S.settings.musicLink=l; save(); toast('Music saved 🎵');
 }
+/* ================= IN-APP YOUTUBE MUSIC ================= */
+function ytParse(url){
+  url=url||'';
+  let list=(url.match(/[?&]list=([\w-]+)/)||[])[1]||'';
+  /* a channel link plays that channel's uploads (YouTube's "UU" playlist) */
+  const ch=(url.match(/\/channel\/UC([\w-]{22})/)||[])[1];
+  if(!list && ch) list='UU'+ch;
+  const v=(url.match(/(?:[?&]v=|youtu\.be\/|\/live\/|\/shorts\/|\/embed\/)([\w-]{11})/)||[])[1]||'';
+  return {v,list};
+}
+function ytReady(){ const p=ytParse(S.settings.ytLink); return S.settings.ytOn!==false && !!(p.v||p.list); }
+let ytPlayer=null, ytIsReady=false, ytMuted=false, ytWant=false;
+function ytLoadApi(){
+  if(window.YT && YT.Player) return ytBuild();
+  if(document.getElementById('ytApi')) return;
+  const t=document.createElement('script'); t.id='ytApi'; t.src='https://www.youtube.com/iframe_api';
+  document.head.appendChild(t);
+}
+window.onYouTubeIframeAPIReady=function(){ ytBuild(); };
+function ytBuild(){
+  if(ytPlayer || !ytReady() || !(window.YT&&YT.Player)) return;
+  const p=ytParse(S.settings.ytLink);
+  const vars={playsinline:1,controls:0,rel:0,modestbranding:1,loop:1};
+  if(p.list){ vars.listType='playlist'; vars.list=p.list; } else { vars.playlist=p.v; }
+  ytPlayer=new YT.Player('ytFrame',{width:96,height:54,videoId:p.v||undefined,playerVars:vars,
+    events:{onReady:()=>{ ytIsReady=true; if(ytWant) ytPlay(); }}});
+}
+function ytPlay(){
+  if(!ytReady()) return;
+  document.getElementById('ytBox').classList.add('on');
+  ytWant=true; ytMuted=false; setMusicIcon();
+  if(!ytPlayer||!ytIsReady){ ytLoadApi(); return; }
+  try{
+    const p=ytParse(S.settings.ytLink);
+    ytPlayer.setVolume(70); ytPlayer.unMute();
+    if(p.list && S.settings.ytIdx){ ytPlayer.playVideoAt(S.settings.ytIdx); }
+    else { if(S.settings.ytPos>5) ytPlayer.seekTo(S.settings.ytPos,true); ytPlayer.playVideo(); }
+  }catch(e){}
+}
+function ytVol(v){ if(ytPlayer&&ytIsReady&&ytWant&&!ytMuted){ try{ ytPlayer.setVolume(v); }catch(e){} } }
+function ytStop(){
+  ytWant=false; document.getElementById('ytBox').classList.remove('on');
+  if(ytPlayer&&ytIsReady){ try{
+    S.settings.ytPos=Math.floor(ytPlayer.getCurrentTime()||0);
+    const i=ytPlayer.getPlaylistIndex&&ytPlayer.getPlaylistIndex(); if(i>=0) S.settings.ytIdx=i;
+    save(); ytPlayer.pauseVideo();
+  }catch(e){} }
+}
+function setMusicIcon(){ const b=document.getElementById('plMusic'); if(b) b.textContent = (ytReady()&&ytMuted)?'🔇':'🎵'; }
+function musicButton(){
+  if(ytReady()){
+    ytMuted=!ytMuted;
+    try{ if(ytMuted) ytPlayer.mute(); else { ytPlayer.unMute(); ytPlayer.setVolume(phase==='rest'?35:70); } }catch(e){}
+    setMusicIcon(); toast(ytMuted?'Music muted 🔇':'Music on 🎵'); return;
+  }
+  openMusic(true);
+}
+function saveYt(){
+  let l=(document.getElementById('setYtLink').value||'').trim();
+  if(l && !/^https?:\/\//i.test(l)) l='https://'+l;
+  S.settings.ytLink=l; S.settings.ytPos=0; S.settings.ytIdx=0; save();
+  if(ytPlayer){ try{ ytPlayer.destroy(); }catch(e){} ytPlayer=null; ytIsReady=false; document.getElementById('ytBox').innerHTML='<div id="ytFrame"></div>'; }
+  renderSettings(); renderToday();
+  const p=ytParse(l); toast((p.v||p.list)?'Music saved 🎵':'That doesn\'t look like a YouTube link');
+  if(p.v||p.list) ytLoadApi();
+}
+function toggleYt(){
+  S.settings.ytOn = S.settings.ytOn===false; save(); renderSettings(); renderToday();
+  toast(S.settings.ytOn?'Music during workouts on 🎵':'Music during workouts off');
+  if(ytReady()) ytLoadApi();
+}
+/* get the player ready in the background so it starts instantly when you tap Start */
+setTimeout(()=>{ if(ytReady()) ytLoadApi(); },800);
+
+/* Spotify web links -> open the Spotify APP directly (so Android doesn't trap you in a web page) */
+function appMusicUrl(url){
+  let m=url.match(/open\.spotify\.com\/(playlist|album|track|artist|show|episode)\/([A-Za-z0-9]+)/);
+  if(m) return 'spotify:'+m[1]+':'+m[2];
+  m=url.match(/open\.spotify\.com\/search\/([^?#]+)/);
+  if(m) return 'spotify:search:'+m[1];
+  return url;
+}
 function openMusic(inWorkout){
   const app=S.settings.musicApp||'spotify';
   const url=S.settings.musicLink||MUSIC_SEARCH[app];
   if(inWorkout) pauseForAway();
-  window.open(url,'_blank');
-  if(inWorkout) toast(phase==='ready'?'Paused. Tap Start now when you\'re back.':'Paused. Tap Resume when you\'re back.');
+  const go=()=>{
+    const direct=appMusicUrl(url);
+    if(direct!==url){ window.location.href=direct; }   /* opens the app itself */
+    else window.open(url,'_blank');
+    if(inWorkout) toast(phase==='ready'?'Paused. Tap Start now when you\'re back.':'Paused. Tap Resume when you\'re back.');
+  };
+  if(S.settings.musicTipSeen) return go();
+  /* one-time tip: how to get back to Momentum */
+  const name=MUSIC_NAME[app]||'your music app';
+  const ov=document.createElement('div'); ov.className='mtip';
+  ov.innerHTML=`<div class="mtip-box"><div style="font-size:34px">🎵</div>
+    <h3>Coming back from ${name}</h3>
+    <p>Start your music, then come back to Momentum using your phone's <b>app switcher</b>:</p>
+    <ul><li><b>Swipe up from the bottom and hold</b>, or tap the <b>▢ square button</b>, depending on your phone.</li>
+    <li>Tap the <b>Momentum</b> card.</li></ul>
+    <p class="muted" style="font-size:13px">Your music keeps playing, and Momentum waits right where you left it.</p>
+    <button class="btn" id="mtipGo">Got it, open ${name}</button></div>`;
+  document.body.appendChild(ov);
+  document.getElementById('mtipGo').onclick=()=>{ S.settings.musicTipSeen=true; save(); ov.remove(); go(); };
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
 }
 /* pause the workout whenever you leave the app (music app, phone call, screen off) */
 function pauseForAway(){
